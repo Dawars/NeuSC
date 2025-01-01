@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import torch.utils.data as data
 import numpy as np
 import os
@@ -43,9 +46,9 @@ class Dataset(data.Dataset):
         cam_dict = np.load(
             join(self.data_root, 'annots/cam_dict.npy'), allow_pickle=True).item()
         self.cam_dict = cam_dict
-        s_date = datetime.date(*cfg.start_date)
-        e_date = datetime.date(*cfg.end_date)
-
+        # s_date = datetime.date(*cfg.start_date)
+        # e_date = datetime.date(*cfg.end_date)
+        self.years_index = json.loads((Path(self.data_root) / "fortepan_years_index.json").read_text())
         # filter
         trashes = []
         interests = []
@@ -67,20 +70,21 @@ class Dataset(data.Dataset):
                 self.data_root, 'dense', 'images', img_name)
             if len(interests) != 0 and img_name not in interests and os.path.basename(img_name) not in interests:
                 continue
-            if os.path.basename(img_path).split('_')[1] in trashes or os.path.basename(img_path) in trashes:
+            if os.path.basename(img_path) in trashes:
                 continue
-            if os.path.basename(img_path).split('_')[0] == 'none':
+            # if os.path.basename(img_path).split('_')[0] == 'none':
+            #     continue
+            if img_name not in self.years_index:
                 continue
-            time = [int(item) for item in os.path.basename(
-                img_path).split('_')[0].split('-')]
-            year, month, day = time
-            date = datetime.date(*(year, month, day))
-            if (date - s_date).days < 0 or (date-e_date).days > 0:
-                continue
+            time = self.years_index[img_name]
+            year = time
             # date = datetime.date(*(year, month, day))
-            s_date = datetime.date(*cfg.start_date)
-            e_date = datetime.date(*cfg.end_date)
-            t = ((date - s_date).days) / ((e_date - s_date).days)
+            # if (date - s_date).days < 0 or (date-e_date).days > 0:
+            #     continue
+            # date = datetime.date(*(year, month, day))
+            s_date = 1900
+            e_date = 1990
+            t = (year - s_date) / (e_date - s_date)
             self.metas.append(k)
             self.img_paths.append(img_path)
             self.times.append(t)
