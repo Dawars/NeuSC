@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import argparse
 import os
@@ -5,7 +6,7 @@ import glob
 import pandas as pd
 sys.path.append('.')
 from lib.utils.colmap.read_write_model import read_images_binary
-from mmseg.apis import inference_segmentor, init_segmentor
+from mmseg.apis import inference_model, init_model
 from tqdm import tqdm
 import numpy as np
 from PIL import Image
@@ -175,7 +176,7 @@ def get_opts():
 
 # deeplabv3 config file path
 config_file = 'configs/3rdparty/deeplabv3_config/deeplabv3_r101-d8_512x512_160k_ade20k.py'
-checkpoint_file = '{}/3rdparty/deeplabv3_r101-d8_512x512_160k_ade20k_20200615_105816-b1f72b3b.pth'.format(os.environ['workspace'])
+checkpoint_file = '/work/ro38seb/pretrained_weights/deeplabv3_r101-d8_512x512_160k_ade20k_20200615_105816-b1f72b3b.pth'
 
 
 def get_mask(result):
@@ -195,7 +196,7 @@ if __name__ == '__main__':
     image_paths = os.listdir(os.path.join(args.root_dir, 'dense/images'))
 
     # build the DeepLabv3 model from a config file and a checkpoint file
-    model = init_segmentor(config_file, checkpoint_file, device=f'cuda:{args.gpu}')
+    model = init_model(config_file, checkpoint_file, device=f'cuda:{args.gpu}')
 
 
     for root, dirs, files in os.walk(os.path.join(args.root_dir, 'dense/images')):
@@ -210,10 +211,13 @@ if __name__ == '__main__':
             if max(img.shape) > 1500:
                 h, w = img.shape[:2]
                 tar_h, tar_w = int(h*0.5), int(w*0.5)
-                result = inference_segmentor(model, cv2.resize(img, (tar_w, tar_h), interpolation=cv2.INTER_AREA))[0] # (H, W)
+                result = inference_model(model, cv2.resize(img, (tar_w, tar_h), interpolation=cv2.INTER_AREA)).pred_sem_seg # (H, W)
+                result = result.data.cpu().detach().numpy()[0]
+#                print(result.shape)
+#                print(result)
                 result = cv2.resize(result, (w, h), interpolation=cv2.INTER_NEAREST)
             else:
-                result = inference_segmentor(model, img)[0] # (H, W)
+                result = inference_model(model, img).pred_sem_seg.data.cpu().detach().numpy()[0] # (H, W)
             result = result.copy()
             mask = get_mask(result)
             msk = cv2.applyColorMap((mask*255).astype(np.uint8), cv2.COLORMAP_JET)
