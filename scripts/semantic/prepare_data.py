@@ -15,7 +15,9 @@ from PIL import Image
 import cv2
 import imageio
 
-transient_objects = ['person', 'car', 'bicycle', 'minibike', 'tree']
+transient_objects = ['person', 'car', 'bicycle', 'minibike', 'tree', "desk",
+                     "blanket", "bed ", "tray", "computer", "swimming pool",
+                     "plate", "basket", "glass", "food", "land", 'sky']
 label_id_mapping_ade20k = {'airplane': 90,
  'animal': 126,
  'apparel': 92,
@@ -221,13 +223,13 @@ if __name__ == '__main__':
             else:
                 result = inference_model(model, img).pred_sem_seg.data.cpu().detach().numpy()[0] # (H, W)
             result = result.copy()
-            # mask = get_mask(result)
-            # msk = cv2.applyColorMap((mask*255).astype(np.uint8), cv2.COLORMAP_JET)
-            # img = cv2.addWeighted(img, 0.6, msk, 0.4, 0)
-            # imageio.imwrite(os.path.join(args.root_dir, 'mask_vis', os.path.basename(img_path)), img)
+            mask = get_mask(result)
+            msk = cv2.applyColorMap((mask*255).astype(np.uint8), cv2.COLORMAP_JET)
+            img = cv2.addWeighted(img, 0.6, msk, 0.4, 0)
+            imageio.imwrite(os.path.join(args.root_dir, 'mask_vis', os.path.basename(img_path)), img)
             image_name = Path(img_path).stem
-            show_result_pyplot(model, img, result, show=False, out_file=os.path.join(args.root_dir, f'segmentation_vis/{image_name}.png'),
-                               opacity=0.5)
+            # show_result_pyplot(model, img_path, result, show=False, out_file=os.path.join(args.root_dir, f'segmentation_vis/{image_name}.png'),
+            #                    opacity=0.5)
             np.savez_compressed(os.path.join(
                 args.root_dir, f'semantic_maps/{image_name}.npz'), result)
 
