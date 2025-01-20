@@ -193,7 +193,7 @@ if __name__ == '__main__':
     args = get_opts()
 
     os.makedirs(os.path.join(args.root_dir, f'semantic_maps'), exist_ok=True)
-    os.makedirs(os.path.join(args.root_dir, f'segmentation_vis'), exist_ok=True)
+    os.makedirs(os.path.join(args.root_dir, f'mask_vis'), exist_ok=True)
 
     print(f'Preparing semantic maps for {args.root_dir.split("/")[-1]} set...')
 
