@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 sys.path.append('.')
 from lib.utils.colmap.read_write_model import read_images_binary
-from mmseg.apis import inference_model, init_model
+from mmseg.apis import inference_model, init_model, show_result_pyplot
 from tqdm import tqdm
 import numpy as np
 from PIL import Image
@@ -226,8 +226,8 @@ if __name__ == '__main__':
             # img = cv2.addWeighted(img, 0.6, msk, 0.4, 0)
             # imageio.imwrite(os.path.join(args.root_dir, 'mask_vis', os.path.basename(img_path)), img)
             image_name = Path(img_path).stem
-            model.show_result(img, [result], out_file=os.path.join(args.root_dir, f'segmentation_vis/{image_name}.png'),
-                              opacity=0.5)
+            show_result_pyplot(model, img, result, show=False, out_file=os.path.join(args.root_dir, f'segmentation_vis/{image_name}.png'),
+                               opacity=0.5)
             np.savez_compressed(os.path.join(
                 args.root_dir, f'semantic_maps/{image_name}.npz'), result)
 
