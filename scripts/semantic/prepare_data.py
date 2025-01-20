@@ -3,6 +3,8 @@ import sys
 import argparse
 import os
 import glob
+from pathlib import Path
+
 import pandas as pd
 sys.path.append('.')
 from lib.utils.colmap.read_write_model import read_images_binary
@@ -189,7 +191,7 @@ if __name__ == '__main__':
     args = get_opts()
 
     os.makedirs(os.path.join(args.root_dir, f'semantic_maps'), exist_ok=True)
-    os.makedirs(os.path.join(args.root_dir, f'mask_vis'), exist_ok=True)
+    os.makedirs(os.path.join(args.root_dir, f'segmentation_vis'), exist_ok=True)
 
     print(f'Preparing semantic maps for {args.root_dir.split("/")[-1]} set...')
 
@@ -208,7 +210,7 @@ if __name__ == '__main__':
             img = Image.open(os.path.join(img_path))
             img_w, img_h = img.size
             img = np.array(img)
-            if max(img.shape) > 1500:
+            if max(img.shape) > 1600:
                 h, w = img.shape[:2]
                 tar_h, tar_w = int(h*0.5), int(w*0.5)
                 result = inference_model(model, cv2.resize(img, (tar_w, tar_h), interpolation=cv2.INTER_AREA)).pred_sem_seg # (H, W)
@@ -219,11 +221,13 @@ if __name__ == '__main__':
             else:
                 result = inference_model(model, img).pred_sem_seg.data.cpu().detach().numpy()[0] # (H, W)
             result = result.copy()
-            mask = get_mask(result)
-            msk = cv2.applyColorMap((mask*255).astype(np.uint8), cv2.COLORMAP_JET)
-            img = cv2.addWeighted(img, 0.6, msk, 0.4, 0)
-            imageio.imwrite(os.path.join(args.root_dir, 'mask_vis', os.path.basename(img_path)), img)
-            image_name = os.path.basename(img_path).split('.')[0]
+            # mask = get_mask(result)
+            # msk = cv2.applyColorMap((mask*255).astype(np.uint8), cv2.COLORMAP_JET)
+            # img = cv2.addWeighted(img, 0.6, msk, 0.4, 0)
+            # imageio.imwrite(os.path.join(args.root_dir, 'mask_vis', os.path.basename(img_path)), img)
+            image_name = Path(img_path).stem
+            model.show_result(img, [result], out_file=os.path.join(args.root_dir, f'segmentation_vis/{image_name}.png'),
+                              opacity=0.5)
             np.savez_compressed(os.path.join(
                 args.root_dir, f'semantic_maps/{image_name}.npz'), result)
 
