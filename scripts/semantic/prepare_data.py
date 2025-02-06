@@ -180,7 +180,7 @@ def get_opts():
 
 # deeplabv3 config file path
 config_file = 'configs/3rdparty/deeplabv3_config/deeplabv3_r101-d8_512x512_160k_ade20k.py'
-checkpoint_file = '/work/ro38seb/pretrained_weights/deeplabv3_r101-d8_512x512_160k_ade20k_20200615_105816-b1f72b3b.pth'
+checkpoint_file = os.path.expandvars('$WEIGHTS_PATH/deeplabv3_r101-d8_512x512_160k_ade20k_20200615_105816-b1f72b3b.pth')
 
 
 def get_mask(result):
